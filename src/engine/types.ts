@@ -21,8 +21,7 @@ export type EngineOutput = {
   asking?: Slot;                     // slot the reply is asking for (lets the UI highlight it / focus the keyboard)
 };
 
-/** Anything that can drive the conversation: the real engine or the UI's fake one. */
 export interface Engine {
-  handle(event: UserEvent): EngineOutput;
+  start(): EngineOutput;                  // Hunter's greeting + first quick replies
+  handle(event: UserEvent): EngineOutput; // every user action after that
 }
-

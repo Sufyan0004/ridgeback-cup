@@ -19,3 +19,7 @@ export type EngineOutput = {
   phase: 'collecting' | 'confirming' | 'done';
 };
 
+export interface Engine {
+  start(): EngineOutput;                  // Hunter's greeting + first quick replies
+  handle(event: UserEvent): EngineOutput; // every user action after that
+}

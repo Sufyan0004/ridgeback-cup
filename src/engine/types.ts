@@ -10,8 +10,7 @@ export type UserEvent =
   | { kind: 'text'; text: string }   
   | { kind: 'edit'; slot: Slot }     
   | { kind: 'back' }
-  | { kind: 'restart' }
-  | { kind: 'start' };               // ask for the opening greeting (no user input yet)
+  | { kind: 'restart' };
 
 export type EngineOutput = {
   reply: string;                     

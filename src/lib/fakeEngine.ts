@@ -99,13 +99,17 @@ export function createFakeEngine(): Engine {
     }
   };
 
+  const greet = (): EngineOutput => {
+    order = {}; history = []; phase = 'collecting';
+    return ask("Hi! I'm Hunter, your barista at The Ridgeback Cup. You can talk or type. ");
+  };
+
   return {
+    start: greet,
     handle(event: UserEvent): EngineOutput {
       switch (event.kind) {
-        case 'start':
         case 'restart':
-          order = {}; history = []; phase = 'collecting';
-          return ask("Hi! I'm Hunter, your barista at The Ridgeback Cup. You can talk or type. ");
+          return greet();
         case 'back':
           if (!history.length) return ask("We're at the start already. ");
           order = history.pop()!;

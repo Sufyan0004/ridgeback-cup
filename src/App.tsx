@@ -16,7 +16,7 @@ export default function App() {
   const [engine] = useState(createEngine);
   // Greeting comes straight from the engine on first render.
   // (Browsers won't speak before the first tap, so it isn't spoken.)
-  const [out, setOut] = useState<EngineOutput>(() => engine.handle({ kind: 'start' }));
+  const [out, setOut] = useState<EngineOutput>(() => engine.start());
   const [messages, setMessages] = useState<Message[]>(() => [{ id: 0, from: 'hunter', text: out.reply }]);
   const [hunter, setHunter] = useState<HunterState>('idle');
   const [changed, setChanged] = useState<Set<Slot>>(new Set());

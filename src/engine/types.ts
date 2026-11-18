@@ -10,12 +10,19 @@ export type UserEvent =
   | { kind: 'text'; text: string }   
   | { kind: 'edit'; slot: Slot }     
   | { kind: 'back' }
-  | { kind: 'restart' };
+  | { kind: 'restart' }
+  | { kind: 'start' };               // ask for the opening greeting (no user input yet)
 
 export type EngineOutput = {
   reply: string;                     
   order: Order;                      
   quickReplies: string[];            
   phase: 'collecting' | 'confirming' | 'done';
+  asking?: Slot;                     // slot the reply is asking for (lets the UI highlight it / focus the keyboard)
 };
+
+/** Anything that can drive the conversation: the real engine or the UI's fake one. */
+export interface Engine {
+  handle(event: UserEvent): EngineOutput;
+}
 

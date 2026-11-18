@@ -87,7 +87,7 @@ Plain TypeScript in `src/engine/`, no React. Testable without a UI.
 - **Conversation flowchart** (graded deliverable; the spec for the engine).
 - **Done when:** all 6 required test cases pass by feeding strings in, with no UI.
 
-### Role 2 — Interface & Voice (Salum or Viet, TBD)
+### Role 2 — Interface & Voice (Salum)
 React components in `src/components/`.
 - Mobile-first layout: Hunter + status label, chat transcript with "I heard: …", quick replies,
   order-ticket bottom sheet, bottom control bar.
@@ -100,7 +100,7 @@ React components in `src/components/`.
 - Deploy to Vercel.
 - **Done when:** a full order works by typing and by voice on an Android phone from the Vercel link.
 
-### Role 3 — UX Research, Avatar, Testing & Presentation (Salum or Viet, TBD)
+### Role 3 — UX Research, Avatar, Testing & Presentation (Viet)
 - Persona, user journey, wireframes in Figma (wireframes first, since Role 2 builds from them).
 - **Hunter component:** `<Hunter state="idle" | "listening" | "thinking" | "speaking" />`, an SVG
   with a CSS animation and a text label per state; respects `prefers-reduced-motion`.

@@ -7,7 +7,7 @@ GitHub renders the diagram below automatically. Role 3 can redraw it in Figma fo
 
 ```mermaid
 flowchart TD
-    Open([User opens the site]) --> Greet["Hunter greets:<br/>'I can take your pickup order. You can speak or type.<br/>What would you like to drink?'"]
+    Open([User opens the site]) --> Greet["Hunter greets:<br/>'Hello! Welcome to The Ridgeback Cup. I'm Hunter, your barista.<br/>I can take your pickup order, and you can speak or type.<br/>What would you like to drink?'"]
     Greet --> Input[/User speaks or types an answer/]
     Input --> Phase{Which phase?}
 

@@ -1,10 +1,10 @@
 /**
  * The single place the UI gets its conversation engine from.
- * When Sufyan's engine is merged, replace the fake with the real one here.
+ * The real engine lives in src/engine/; fakeEngine.ts is the old stand-in, kept for reference.
  */
 import type { Engine } from '../engine/types';
-import { createFakeEngine } from './fakeEngine';
+import { createEngine as createConversationEngine } from '../engine/engine';
 
 export function createEngine(): Engine {
-  return createFakeEngine();
+  return createConversationEngine();
 }

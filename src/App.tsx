@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EngineOutput, Slot, UserEvent } from './engine/types';
 import { createEngine } from './lib/engine';
 import { SLOTS, type HunterState, type Message } from './lib/ui';
-import { HunterPlaceholder as Hunter } from './components/HunterPlaceholder';
+import { Hunter } from './components/Hunter';
 import { Transcript } from './components/Transcript';
 import { QuickReplies } from './components/QuickReplies';
 import { OrderTicket } from './components/OrderTicket';

@@ -1,0 +1,81 @@
+/* ---------- Hunter avatar ---------- */
+.hunter { display: flex; align-items: center; justify-content: center; gap: 26px; }
+.hunter__stage { position: relative; flex: none; width: 64px; height: 64px; }
+.hunter__art img {
+  display: block; width: 64px; height: 64px; object-fit: cover;
+  border-radius: 50%; background: var(--brown-tint);
+  border: 3px solid var(--line);
+  transition: border-color .25s, box-shadow .25s;
+  user-select: none;
+}
+.hunter__name { font-weight: 600; }
+.hunter__status { font-size: 0.85rem; color: var(--muted); }
+
+/* State colours: work even with motion turned off */
+.hunter--listening .hunter__art img { border-color: var(--sage); }
+.hunter--thinking  .hunter__art img { border-color: var(--brown); }
+.hunter--speaking  .hunter__art img { border-color: var(--focus); }
+.hunter--listening .hunter__status { color: var(--sage); font-weight: 600; }
+.hunter--speaking  .hunter__status { color: var(--focus); font-weight: 600; }
+
+/* "…" bubble (thinking) and sound waves (speaking) */
+.hunter__bubble, .hunter__waves { position: absolute; display: none; pointer-events: none; }
+.hunter__bubble {
+  top: -6px; right: -14px; gap: 3px; padding: 5px 7px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+}
+.hunter__bubble i { width: 5px; height: 5px; border-radius: 50%; background: var(--brown); }
+.hunter--thinking .hunter__bubble { display: flex; }
+.hunter__waves { top: 50%; right: -16px; width: 14px; height: 28px; transform: translateY(-50%); }
+.hunter__waves i {
+  position: absolute; top: 50%; left: 0; border: 2px solid var(--focus);
+  border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+.hunter__waves i:nth-child(1) { width: 10px; height: 10px; }
+.hunter__waves i:nth-child(2) { width: 20px; height: 20px; left: -2px; opacity: .6; }
+.hunter--speaking .hunter__waves { display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hunter__art { display: block; transform-origin: 50% 90%; }
+  .hunter--idle      .hunter__art { animation: hunter-float 3.2s ease-in-out infinite; }
+  .hunter--listening .hunter__art { transform: rotate(-7deg); transition: transform .3s; }
+  .hunter--listening .hunter__art img { animation: hunter-ring 1.3s ease-out infinite; }
+  .hunter--speaking  .hunter__art { animation: hunter-bob .34s ease-in-out infinite alternate; }
+  .hunter--thinking  .hunter__bubble i { animation: hunter-dot 1s ease-in-out infinite; }
+  .hunter--thinking  .hunter__bubble i:nth-child(2) { animation-delay: .15s; }
+  .hunter--thinking  .hunter__bubble i:nth-child(3) { animation-delay: .3s; }
+  .hunter--speaking  .hunter__waves i { animation: hunter-wave .9s ease-out infinite; }
+  .hunter--speaking  .hunter__waves i:nth-child(2) { animation-delay: .3s; }
+}
+@keyframes hunter-float { 50% { transform: translateY(-3px); } }
+@keyframes hunter-bob { to { transform: translateY(-3px) scale(1.03); } }
+@keyframes hunter-ring {
+  0% { box-shadow: 0 0 0 0 rgba(79, 107, 90, .5); }
+  100% { box-shadow: 0 0 0 12px rgba(79, 107, 90, 0); }
+}
+@keyframes hunter-dot { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+@keyframes hunter-wave { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- Desktop: full barista in the side panel ---------- */
+@media (min-width: 900px) {
+  .hunter { flex-direction: column; gap: 10px; text-align: center; }
+  .hunter__stage { width: 200px; height: auto; }
+  .hunter__art img {
+    width: 200px; height: auto; aspect-ratio: 553 / 520; object-fit: contain;
+    border: none; border-radius: 0; background: none;
+  }
+  /* Ring becomes a soft halo behind the figure */
+  .hunter__stage::before {
+    content: ''; position: absolute; inset: 12% 8% 0; border-radius: 50%;
+    background: var(--brown-tint); z-index: -1; transition: background-color .25s;
+  }
+  .hunter__stage { isolation: isolate; }
+  .hunter--listening .hunter__stage::before { background: var(--sage-tint); }
+  .hunter--speaking  .hunter__stage::before { background: #f6e3cf; }
+  .hunter--listening .hunter__art img { animation: none; }
+  .hunter__bubble { top: 4px; right: 4px; padding: 7px 10px; }
+  .hunter__bubble i { width: 7px; height: 7px; }
+  .hunter__waves { top: 30%; right: -4px; }
+  .hunter__name { font-size: 1.1rem; }
+}

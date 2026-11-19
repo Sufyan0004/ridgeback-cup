@@ -1,21 +1,4 @@
-/**
- * Hunter's conversation engine (Role 1). Implements docs/flowchart.md.
- *
- * The UI calls start() once for the greeting, then handle(event) for every user
- * action. The engine keeps its own state: the order so far, a history for Back,
- * the phase, and which question Hunter is on.
- *
- * Every text answer goes through the same steps:
- *   1. The matcher reads the WHOLE sentence and finds values for any slot.
- *   2. Problems are answered first: something not on the menu, two values for
- *      one slot ("oat or almond"), or a quantity outside 1 to 10.
- *   3. Values are applied. An empty slot gets filled; a filled slot with a
- *      different value is a correction. Both work in any phase, however phrased.
- *   4. The drink's rules are checked. Valid answers are kept; ones the drink
- *      doesn't allow are changed or dropped, and Hunter says so.
- *   5. Hunter echoes what he understood, then asks the next empty question
- *      (skipping ones that don't apply), or reads everything back to confirm.
- */
+/** Hunter's conversation engine: applies each answer to the order and decides what Hunter says next (see docs/flowchart.md). */
 import type { Engine, EngineOutput, Order, Slot, UserEvent } from './types';
 import { DRINKS, EXTRAS, MAX_NAME_LENGTH, MAX_QUANTITY, MILKS, NO_MILK, PICKUPS, QUANTITY_CHOICES, SIZES, findDrink, type Drink } from './menu';
 import { controlOnly, extractName, parse, type Parsed } from './matcher';

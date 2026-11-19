@@ -1,15 +1,4 @@
-/**
- * The Ridgeback Cup menu (decided Wed Nov 18; see CONTEXT.md section 4).
- *
- * Everything Hunter understands lives here: each value, the words and phrases
- * that mean it (including common speech-to-text spellings), and each drink's
- * rules. The matcher and the engine only read this file, so changing the menu
- * never means changing logic.
- *
- * Keywords are lowercase, with no punctuation. Longer phrases always win over
- * shorter ones, so "hot chocolate" beats "hot" and "matcha latte" beats "latte".
- */
-
+/** The Ridgeback Cup menu: every value Hunter understands, the words that mean it, and each drink's rules. */
 export type Temp = 'hot' | 'iced';
 
 /**

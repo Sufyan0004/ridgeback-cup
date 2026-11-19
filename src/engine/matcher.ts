@@ -1,21 +1,4 @@
-/**
- * The matcher: turns whatever the user typed or said into structured facts.
- *
- * It scans the WHOLE sentence for values from EVERY slot, not just the slot
- * Hunter asked about. That one design choice is what makes these work:
- *   - "a large iced oat latte"         fills four slots in one turn
- *   - "actually, make it almond milk"  is a correction, whatever Hunter asked
- *   - "um, can I get a latte please"   filler words are simply ignored
- *
- * How it reads a sentence:
- *   1. normalize: lowercase, drop punctuation, split into words
- *   2. scan left to right; at each word take the LONGEST phrase that matches
- *      ("hot chocolate" beats "hot", "matcha latte" beats "latte")
- *   3. work out what the hits mean: negations ("not oat", "almond instead of oat"),
- *      self-corrections ("medium, actually large"), real ambiguity ("oat or almond")
- *
- * The matcher never changes the order. The engine decides what to do with the result.
- */
+/** Reads one user sentence and finds values for every slot, plus negations, corrections and ambiguity. */
 import type { Slot } from './types';
 import { CONTEXT_WORDS, DRINKS, EXTRAS, MAX_QUANTITY, MILKS, NO_EXTRAS_KEYWORDS, OFF_MENU, PICKUPS, SIZES, TEMPS } from './menu';
 

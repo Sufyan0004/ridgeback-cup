@@ -1,11 +1,4 @@
-/**
- * Engine tests for the design decisions in CONTEXT.md and docs/flowchart.md that go
- * beyond the 6 required cases in required-cases.test.ts: natural phrasing, drink
- * rules, keep-valid / drop-invalid on a drink change, ambiguity, self-corrections,
- * the read-back "no" path, quantity limits and names.
- *
- * Run: npm test
- */
+/** Engine tests for the design decisions beyond the 6 required cases. Run: npm test */
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Engine, EngineOutput } from '../src/engine/types';
 import { createEngine } from '../src/lib/engine';

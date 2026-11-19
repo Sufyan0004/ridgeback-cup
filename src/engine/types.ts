@@ -17,6 +17,7 @@ export type EngineOutput = {
   order: Order;                      
   quickReplies: string[];            
   phase: 'collecting' | 'confirming' | 'done';
+  asking?: Slot;                     // slot the reply is asking for (lets the UI highlight it / focus the keyboard)
 };
 
 export interface Engine {

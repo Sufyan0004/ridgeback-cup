@@ -1,13 +1,13 @@
 /** Reads one user sentence and finds values for every slot, plus negations, corrections and ambiguity. */
 import type { Slot } from './types';
-import { CONTEXT_WORDS, DRINKS, EXTRAS, MAX_QUANTITY, MILKS, NO_EXTRAS_KEYWORDS, OFF_MENU, PICKUPS, SIZES, TEMPS } from './menu';
+import { CONTEXT_WORDS, DRINKS, EXTRAS, MAX_QUANTITY, MILKS, NO_EXTRAS_KEYWORDS, OFF_MENU, OFF_SIZES, PICKUPS, SIZES, TEMPS } from './menu';
 
 export type Control = 'restart' | 'back' | 'repeat' | 'menu';
 type Marker = 'correct' | 'or' | 'add' | 'describe';
 type SingleSlot = 'drink' | 'size' | 'temp' | 'milk' | 'pickup';
 
 type Entry = { phrase: string[]; context?: Slot } & (
-  | { kind: 'value'; slot: SingleSlot | 'extras'; value: string }
+  | { kind: 'value'; slot: SingleSlot | 'extras'; value: string; said?: string }
   | { kind: 'noExtras' }
   | { kind: 'offMenu'; closest?: string; food?: boolean }
   | { kind: 'control'; control: Control }
@@ -30,6 +30,8 @@ export interface Parsed {
     none: boolean;      // "no extras"
     additive: boolean;  // "add vanilla", "also caramel": keep the existing ones
   };
+  /** A size we don't sell ("extra large") that was swapped for the nearest one. */
+  sizeSwap?: { said: string; value: string };
   /** A valid quantity (1 to MAX_QUANTITY). */
   quantity?: number;
   /** A number outside the allowed range ("50"). */
@@ -128,6 +130,7 @@ const ENTRIES: Entry[] = (() => {
 
   for (const d of DRINKS) add(d.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'drink', value: d.name }));
   for (const s of SIZES) add(s.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'size', value: s.value }));
+  for (const s of OFF_SIZES) add(s.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'size', value: s.value, said: s.said }));
   for (const t of TEMPS) add(t.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'temp', value: t.value }));
   for (const m of MILKS) add(m.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'milk', value: m.value }));
   for (const e of EXTRAS) add(e.keywords, (phrase) => ({ phrase, kind: 'value', slot: 'extras', value: e.value }));
@@ -216,6 +219,10 @@ export function parse(text: string, asking?: Slot): Parsed {
       else parsed.ambiguous ??= { slot, options: distinct };
     }
   }
+
+  // "Extra large": remember what they said, so Hunter can explain the swap
+  const sizeHit = [...kept].reverse().find((h) => h.entry.slot === 'size' && h.entry.value === parsed.values.size);
+  if (sizeHit?.entry.said) parsed.sizeSwap = { said: sizeHit.entry.said, value: sizeHit.entry.value };
 
   // Extras can be several at once
   parsed.extras.add = unique(kept.filter((h) => h.entry.slot === 'extras').map((h) => h.entry.value));

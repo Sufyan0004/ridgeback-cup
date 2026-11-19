@@ -76,6 +76,8 @@ function describeDrink(o: Order, includeExtras = true): string {
   // Skip "hot" for hot chocolate, so it doesn't read "hot hot chocolate"
   if (o.temp && !(d && d.name.toLowerCase().startsWith(o.temp))) parts.push(o.temp);
   parts.push(d ? drinkWord(d, qty > 1) : 'drink');
+  // "an iced latte", not "a iced latte"
+  if (parts[0] === 'a' && /^[aeiou]/.test(parts[1] ?? '')) parts[0] = 'an';
   let text = parts.join(' ');
   if (o.milk && d?.milk !== 'none') text += ` with ${milkText(o.milk)}`;
   if (includeExtras && o.extras) text += o.extras.length ? `, plus ${extrasText(o.extras)}` : ', no extras';
@@ -275,6 +277,17 @@ export function createEngine(): Engine {
     }
 
     checkDrinkRules(notes);
+
+    // "Extra large" became large: the note explains it instead of a plain "Large, got it"
+    if (p.sizeSwap && order.size === p.sizeSwap.value) {
+      const which = p.sizeSwap.value === 'Large' ? 'biggest' : 'smallest';
+      const size = p.sizeSwap.value.toLowerCase();
+      const i = changes.findIndex((c) => c.slot === 'size');
+      notes.push(i >= 0
+        ? `We don't have ${p.sizeSwap.said}, so I've made it a ${size}, our ${which} size.`
+        : `We don't have ${p.sizeSwap.said}. A ${size} is our ${which} size, and that's what you have.`);
+      if (i >= 0) changes.splice(i, 1);
+    }
 
     // If a rule overrode a value ("iced" on hot chocolate), the note explains it, so don't echo it too
     const kept = changes.filter((c) => same(order[c.slot], c.value));

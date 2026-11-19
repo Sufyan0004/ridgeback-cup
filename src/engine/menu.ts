@@ -84,7 +84,13 @@ export interface Choice {
 export const SIZES: Choice[] = [
   { value: 'Small', keywords: ['small', 'smaller', 'smallest', 'little', 'short'] },
   { value: 'Medium', keywords: ['medium', 'regular', 'regular size', 'normal', 'normal size', 'mid', 'middle', 'grande'] },
-  { value: 'Large', keywords: ['large', 'larger', 'largest', 'big', 'bigger', 'biggest', 'extra large', 'venti', 'huge'] },
+  { value: 'Large', keywords: ['large', 'larger', 'largest', 'big', 'bigger', 'biggest'] },
+];
+
+/** Sizes we don't sell. Hunter uses the nearest size and says so. */
+export const OFF_SIZES: { said: string; value: string; keywords: string[] }[] = [
+  { said: 'extra large', value: 'Large', keywords: ['extra large', 'xl', 'x large', 'extra big', 'venti', 'huge', 'jumbo', 'massive'] },
+  { said: 'extra small', value: 'Small', keywords: ['extra small', 'xs', 'x small', 'tiny', 'kids size', 'kid size'] },
 ];
 
 export const TEMPS: { value: Temp; keywords: string[] }[] = [

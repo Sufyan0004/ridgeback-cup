@@ -56,6 +56,16 @@ describe('Natural phrasing', () => {
     expect(out.asking).toBe('name');
   });
 
+  it('"extra large" becomes large, and Hunter says so', () => {
+    say('an extra large latte');
+    expect(out.order.size).toBe('Large');
+    expect(reply()).toContain("don't have extra large");
+    engine.handle({ kind: 'restart' });
+    sayAll('latte', 'extra small');
+    expect(out.order.size).toBe('Small');
+    expect(reply()).toContain("don't have extra small");
+  });
+
   it('echoes what it understood', () => {
     sayAll('latte', 'medium');
     expect(reply()).toContain('medium');

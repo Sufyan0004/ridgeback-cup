@@ -7,7 +7,7 @@ import { Transcript } from './components/Transcript';
 import { QuickReplies } from './components/QuickReplies';
 import { OrderTicket } from './components/OrderTicket';
 import { Composer } from './components/Composer';
-import { ConfirmCard, DoneCard } from './components/OrderCards';
+import { ConfirmCard, DoneCard, RestartConfirm } from './components/OrderCards';
 import { VoicePanel, type VoiceView } from './components/VoicePanel';
 import { useSpeechRecognition } from './lib/useSpeechRecognition';
 import { useSpeechSynthesis } from './lib/useSpeechSynthesis';
@@ -29,6 +29,7 @@ export default function App() {
   const [review, setReview] = useState<string | null>(null); // low-confidence transcript awaiting a yes
   const [showUndo, setShowUndo] = useState(false);            // last answer came from voice
   const [focusToken, setFocusToken] = useState(0);
+  const [confirmRestart, setConfirmRestart] = useState(false); // "Start over?" prompt showing
   const nextId = useRef(1);
   const timers = useRef<number[]>([]);
   const outRef = useRef<EngineOutput>(out);
@@ -49,6 +50,7 @@ export default function App() {
   const dispatch = useCallback((event: UserEvent, said?: { text: string; viaVoice?: boolean }) => {
     if (said) addMessage({ from: 'user', ...said });
     stopSpeaking(); // the user has moved on; don't finish the old reply
+    setConfirmRestart(false); // any other action means they're not starting over
     setHunter('thinking');
     timers.current.forEach(clearTimeout);
 
@@ -94,7 +96,7 @@ export default function App() {
   });
 
   // Stop Hunter first so the speaker isn't picked up as the user's answer
-  const startListening = () => { stopSpeaking(); setReview(null); setShowUndo(false); speech.clearError(); speech.start(); };
+  const startListening = () => { stopSpeaking(); setConfirmRestart(false); setReview(null); setShowUndo(false); speech.clearError(); speech.start(); };
   const onMic = () => (speech.listening ? speech.stop() : startListening());
   const typeInstead = () => {
     speech.cancel();
@@ -120,6 +122,14 @@ export default function App() {
   const clearVoice = () => { setShowUndo(false); setReview(null); speech.clearError(); };
 
   const restart = () => { clearVoice(); speech.cancel(); setMessages([]); setTicketOpen(false); dispatch({ kind: 'restart' }); };
+  // Ask first if there's anything to lose; a finished order restarts straight away
+  const filled = SLOTS.filter((s) => order[s] !== undefined).length;
+  const requestRestart = () => {
+    if (filled === 0 || phase === 'done') return restart();
+    clearVoice();
+    speech.cancel();
+    setConfirmRestart(true);
+  };
 
   // Quick replies show in every phase except done. While confirming, the
   // summary card already has Confirm / Edit, so plain Yes / No chips are dropped.
@@ -161,7 +171,8 @@ export default function App() {
           {phase === 'done' && !busy && <DoneCard order={order} onRestart={restart} />}
         </Transcript>
 
-        {!voiceBusy && <QuickReplies options={chips} onPick={(o) => sendText(o)} disabled={busy} />}
+        {!voiceBusy && !confirmRestart && <QuickReplies options={chips} onPick={(o) => sendText(o)} disabled={busy} />}
+        {confirmRestart && <RestartConfirm filled={filled} onKeep={() => setConfirmRestart(false)} onRestart={restart} />}
 
         <VoicePanel
           view={voiceView}
@@ -188,7 +199,7 @@ export default function App() {
       <Composer
         onSend={(t) => { speech.cancel(); speech.clearError(); sendText(t); }}
         onBack={() => { clearVoice(); dispatch({ kind: 'back' }); }}
-        onRestart={restart}
+        onRestart={requestRestart}
         onRepeat={() => lastReply && ttsSpeak(lastReply)} // an explicit tap plays even when muted
         muted={muted}
         onToggleMute={toggleMute}

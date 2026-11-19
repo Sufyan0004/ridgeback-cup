@@ -42,7 +42,10 @@ export function OrderTicket({ order, asking, changed, open, onToggle, onEdit, lo
           );
         })}
       </ul>
-      <p className="ticket__foot"><strong>Pay at pickup</strong> · no card needed. {filled > 0 && !locked && 'Tap a field to change it.'}</p>
+      <p className="ticket__foot">
+        <strong>Pay at pickup</strong> · no card needed. We only ask for a first name for your cup.
+        {filled > 0 && !locked && ' Tap a field to change it.'}
+      </p>
     </section>
   );
 }

@@ -52,7 +52,7 @@ export function Composer({ onSend, onBack, onRestart, onRepeat, muted, onToggleM
           className="composer__input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={askingName ? 'Type your name…' : 'Type your order…'}
+          placeholder={askingName ? 'Type your first name…' : 'Type your order…'}
           aria-label={askingName ? 'Your name for the cup' : 'Type your answer'}
           autoComplete={askingName ? 'given-name' : 'off'}
           disabled={disabled}
@@ -60,6 +60,7 @@ export function Composer({ onSend, onBack, onRestart, onRepeat, muted, onToggleM
         />
         <button type="submit" className="send" disabled={disabled || !text.trim()}>Send</button>
       </form>
+      {askingName && <p className="composer__note">Only your first name is collected. It goes on your cup.</p>}
       {!micSupported && <p className="composer__note">Voice isn't available in this browser. Typing works for everything.</p>}
       <div className="controls" role="group" aria-label="Conversation controls">
         <button type="button" onClick={onRepeat} disabled={!speechOutSupported} title={speechOutSupported ? 'Hear the last reply again' : "Spoken replies aren't supported in this browser"}>Repeat</button>

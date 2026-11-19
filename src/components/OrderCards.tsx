@@ -20,6 +20,21 @@ export function ConfirmCard({ order, onConfirm, onEdit }: { order: Order; onConf
   );
 }
 
+/** Shown before Start over wipes a partly-filled order (matches the flowchart). */
+export function RestartConfirm({ filled, onKeep, onRestart }: { filled: number; onKeep: () => void; onRestart: () => void }) {
+  return (
+    <div className="voice-panel voice-panel--error" role="group" aria-labelledby="restart-title">
+      <div className="voice-panel__title" id="restart-title">Start over?</div>
+      <p className="voice-panel__hint">This clears your order ({filled} of 8 details so far).</p>
+      <div className="voice-panel__actions">
+        {/* Keeping the order is the safe default, so it gets focus */}
+        <button type="button" className="btn btn--primary" onClick={onKeep} autoFocus>Keep my order</button>
+        <button type="button" className="btn" onClick={onRestart}>Start over</button>
+      </div>
+    </div>
+  );
+}
+
 /** 06_Order_Complete */
 export function DoneCard({ order, onRestart }: { order: Order; onRestart: () => void }) {
   return (

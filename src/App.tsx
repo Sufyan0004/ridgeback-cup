@@ -8,9 +8,12 @@ import { QuickReplies } from './components/QuickReplies';
 import { OrderTicket } from './components/OrderTicket';
 import { Composer } from './components/Composer';
 import { ConfirmCard, DoneCard } from './components/OrderCards';
+import { VoicePanel, type VoiceView } from './components/VoicePanel';
+import { useSpeechRecognition } from './lib/useSpeechRecognition';
 import './App.css';
 
 const THINK_MS = 350; // brief "thinking" beat so the state change is visible
+const LOW_CONFIDENCE = 0.5; // below this, show what was heard and ask before sending
 
 export default function App() {
   const [engine] = useState(createEngine);
@@ -22,6 +25,9 @@ export default function App() {
   const [changed, setChanged] = useState<Set<Slot>>(new Set());
   const [ticketOpen, setTicketOpen] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [review, setReview] = useState<string | null>(null); // low-confidence transcript awaiting a yes
+  const [showUndo, setShowUndo] = useState(false);            // last answer came from voice
+  const [focusToken, setFocusToken] = useState(0);
   const nextId = useRef(1);
   const timers = useRef<number[]>([]);
   const outRef = useRef<EngineOutput>(out);
@@ -67,8 +73,52 @@ export default function App() {
   const order = out.order;
   const phase = out.phase;
 
-  const sendText = (text: string, viaVoice = false) => dispatch({ kind: 'text', text }, { text, viaVoice });
-  const restart = () => { setMessages([]); setTicketOpen(false); dispatch({ kind: 'restart' }); };
+  const sendText = (text: string, viaVoice = false) => {
+    setShowUndo(viaVoice);
+    setReview(null);
+    dispatch({ kind: 'text', text }, { text, viaVoice });
+  };
+
+  // ---------- Voice input ----------
+  const speech = useSpeechRecognition({
+    onFinal: (heard, confidence) => {
+      if (confidence !== undefined && confidence < LOW_CONFIDENCE) setReview(heard);
+      else sendText(heard, true);
+    },
+  });
+
+  const startListening = () => { setReview(null); setShowUndo(false); speech.clearError(); speech.start(); };
+  const onMic = () => (speech.listening ? speech.stop() : startListening());
+  const typeInstead = () => {
+    speech.cancel();
+    speech.clearError();
+    setReview(null);
+    setFocusToken((n) => n + 1);
+  };
+  const undoVoice = () => {
+    setShowUndo(false);
+    dispatch({ kind: 'back' });
+    timers.current.push(window.setTimeout(startListening, THINK_MS + 50));
+  };
+
+  const voiceView: VoiceView =
+    speech.listening ? { kind: 'listening', interim: speech.interim }
+    : review ? { kind: 'review', heard: review }
+    : speech.error ? { kind: 'error', message: speech.error.message }
+    : showUndo && phase !== 'done' && !busy ? { kind: 'undo' }
+    : { kind: 'none' };
+  const voiceBusy = voiceView.kind === 'listening' || voiceView.kind === 'review' || voiceView.kind === 'error';
+
+  // Non-voice actions clear any voice leftovers
+  const clearVoice = () => { setShowUndo(false); setReview(null); speech.clearError(); };
+
+  const restart = () => { clearVoice(); speech.cancel(); setMessages([]); setTicketOpen(false); dispatch({ kind: 'restart' }); };
+
+  // Quick replies show in every phase except done. While confirming, the
+  // summary card already has Confirm / Edit, so plain Yes / No chips are dropped.
+  const chips = phase === 'done' ? [] : phase === 'confirming'
+    ? out.quickReplies.filter((q) => !/^(yes|no)$/i.test(q.trim()))
+    : out.quickReplies;
   const lastReply = [...messages].reverse().find((m) => m.from === 'hunter')?.text;
 
   return (
@@ -81,7 +131,7 @@ export default function App() {
       </header>
 
       <aside className="avatar-panel">
-        <Hunter state={hunter} />
+        <Hunter state={speech.listening ? 'listening' : hunter} />
       </aside>
 
       <main className="conversation">
@@ -92,9 +142,17 @@ export default function App() {
           {phase === 'done' && !busy && <DoneCard order={order} onRestart={restart} />}
         </Transcript>
 
-        {phase === 'collecting' && (
-          <QuickReplies options={out.quickReplies} onPick={(o) => sendText(o)} disabled={busy} />
-        )}
+        {!voiceBusy && <QuickReplies options={chips} onPick={(o) => sendText(o)} disabled={busy} />}
+
+        <VoicePanel
+          view={voiceView}
+          onStop={speech.stop}
+          onRetry={startListening}
+          onTypeInstead={typeInstead}
+          onSendHeard={() => review && sendText(review, true)}
+          onUndo={undoVoice}
+          canRetry={speech.supported && speech.error?.code !== 'not-allowed' && speech.error?.code !== 'service-not-allowed'}
+        />
 
       </main>
 
@@ -104,19 +162,23 @@ export default function App() {
         changed={changed}
         open={ticketOpen}
         onToggle={() => setTicketOpen((o) => !o)}
-        onEdit={(slot) => { setTicketOpen(false); dispatch({ kind: 'edit', slot }); }}
+        onEdit={(slot) => { clearVoice(); setTicketOpen(false); dispatch({ kind: 'edit', slot }); }}
         locked={phase === 'done'}
       />
 
       <Composer
-        onSend={(t) => sendText(t)}
-        onBack={() => dispatch({ kind: 'back' })}
+        onSend={(t) => { speech.cancel(); speech.clearError(); sendText(t); }}
+        onBack={() => { clearVoice(); dispatch({ kind: 'back' }); }}
         onRestart={restart}
         onRepeat={() => lastReply && speak(lastReply)}
         muted={muted}
         onToggleMute={() => setMuted((m) => !m)}
         askingName={out.asking === 'name'}
         disabled={busy}
+        micSupported={speech.supported}
+        listening={speech.listening}
+        onMic={onMic}
+        focusToken={focusToken}
       />
     </div>
   );

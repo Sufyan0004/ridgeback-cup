@@ -146,3 +146,41 @@
   .ticket__chevron { display: none; }
   .ticket__rows, .ticket__foot { display: block; }
 }
+
+/* ---------- Voice (step 6) ---------- */
+.mic--on { background: var(--sage); }
+@media (prefers-reduced-motion: no-preference) {
+  .mic--on { animation: mic-ring 1.2s ease-out infinite; }
+}
+@keyframes mic-ring {
+  0% { box-shadow: 0 0 0 0 rgba(79, 107, 90, 0.55); }
+  100% { box-shadow: 0 0 0 14px rgba(79, 107, 90, 0); }
+}
+
+.voice-panel {
+  margin: 0 16px 10px; padding: 14px; border-radius: var(--radius);
+  background: var(--cream); border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+}
+.voice-panel--listening { border-color: var(--sage); background: var(--sage-tint); }
+.voice-panel--error { border-color: var(--focus); }
+.voice-panel__title { font-weight: 600; }
+.voice-panel__live { min-height: 1.45em; color: var(--ink); }
+.voice-panel__hint { color: var(--muted); font-size: 0.9rem; }
+.voice-panel__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.voice-panel__actions .btn { min-height: 40px; padding: 6px 14px; }
+
+.wave { display: flex; align-items: center; gap: 4px; height: 28px; }
+.wave span { width: 5px; height: 40%; border-radius: 3px; background: var(--sage); }
+@media (prefers-reduced-motion: no-preference) {
+  .wave span { animation: wave 0.9s ease-in-out infinite; }
+  .wave span:nth-child(2) { animation-delay: .1s; } .wave span:nth-child(3) { animation-delay: .2s; }
+  .wave span:nth-child(4) { animation-delay: .3s; } .wave span:nth-child(5) { animation-delay: .2s; }
+  .wave span:nth-child(6) { animation-delay: .1s; }
+}
+@keyframes wave { 50% { height: 100%; } }
+
+.voice-undo { margin: 0 16px 10px; font-size: 0.85rem; color: var(--muted); }
+.voice-undo button { border: none; background: none; padding: 4px; color: var(--brown-dark); text-decoration: underline; text-underline-offset: 3px; }
+
+.composer__note { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }

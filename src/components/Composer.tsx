@@ -14,9 +14,10 @@ type Props = {
   onMic: () => void;
   /** Bump this number to move focus to the text box ("Type instead"). */
   focusToken: number;
+  speechOutSupported: boolean;
 };
 
-export function Composer({ onSend, onBack, onRestart, onRepeat, muted, onToggleMute, askingName, disabled, micSupported, listening, onMic, focusToken }: Props) {
+export function Composer({ onSend, onBack, onRestart, onRepeat, muted, onToggleMute, askingName, disabled, micSupported, listening, onMic, focusToken, speechOutSupported }: Props) {
   const [text, setText] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
@@ -61,10 +62,10 @@ export function Composer({ onSend, onBack, onRestart, onRepeat, muted, onToggleM
       </form>
       {!micSupported && <p className="composer__note">Voice isn't available in this browser. Typing works for everything.</p>}
       <div className="controls" role="group" aria-label="Conversation controls">
-        <button type="button" onClick={onRepeat}>Repeat</button>
+        <button type="button" onClick={onRepeat} disabled={!speechOutSupported} title={speechOutSupported ? 'Hear the last reply again' : "Spoken replies aren't supported in this browser"}>Repeat</button>
         <button type="button" onClick={onBack}>Back</button>
         <button type="button" onClick={onRestart}>Start over</button>
-        <button type="button" onClick={onToggleMute} aria-pressed={muted}>{muted ? 'Unmute' : 'Mute'}</button>
+        <button type="button" onClick={onToggleMute} aria-pressed={muted} disabled={!speechOutSupported}>{muted ? 'Unmute' : 'Mute'}</button>
       </div>
     </div>
   );

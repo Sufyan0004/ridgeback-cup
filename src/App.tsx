@@ -10,6 +10,7 @@ import { Composer } from './components/Composer';
 import { ConfirmCard, DoneCard } from './components/OrderCards';
 import { VoicePanel, type VoiceView } from './components/VoicePanel';
 import { useSpeechRecognition } from './lib/useSpeechRecognition';
+import { useSpeechSynthesis } from './lib/useSpeechSynthesis';
 import './App.css';
 
 const THINK_MS = 350; // brief "thinking" beat so the state change is visible
@@ -17,8 +18,8 @@ const LOW_CONFIDENCE = 0.5; // below this, show what was heard and ask before se
 
 export default function App() {
   const [engine] = useState(createEngine);
-  // Greeting comes straight from the engine on first render.
-  // (Browsers won't speak before the first tap, so it isn't spoken.)
+  // Greeting comes straight from the engine on first render. It's shown but not
+  // spoken: browsers block audio until the user has tapped something.
   const [out, setOut] = useState<EngineOutput>(() => engine.start());
   const [messages, setMessages] = useState<Message[]>(() => [{ id: 0, from: 'hunter', text: out.reply }]);
   const [hunter, setHunter] = useState<HunterState>('idle');
@@ -34,15 +35,20 @@ export default function App() {
 
   const addMessage = (m: Omit<Message, 'id'>) => setMessages((ms) => [...ms, { ...m, id: nextId.current++ }]);
 
-  // TODO(step 7): text-to-speech. Set hunter='speaking' while audio plays.
+  // ---------- Voice output ----------
+  const tts = useSpeechSynthesis();
+  const mutedRef = useRef(muted); // read inside timers, so it must never be stale
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
+
+  const { speak: ttsSpeak, cancel: stopSpeaking } = tts;
   const speak = useCallback((text: string) => {
-    if (muted) return;
-    void text;
-  }, [muted]);
+    if (!mutedRef.current) ttsSpeak(text);
+  }, [ttsSpeak]);
 
   /** The one path every user action goes through. */
   const dispatch = useCallback((event: UserEvent, said?: { text: string; viaVoice?: boolean }) => {
     if (said) addMessage({ from: 'user', ...said });
+    stopSpeaking(); // the user has moved on; don't finish the old reply
     setHunter('thinking');
     timers.current.forEach(clearTimeout);
 
@@ -61,7 +67,7 @@ export default function App() {
       setHunter('idle');
       speak(result.reply);
     }, THINK_MS));
-  }, [engine, speak]);
+  }, [engine, speak, stopSpeaking]);
 
   // Clear pending timers on unmount
   useEffect(() => {
@@ -87,7 +93,8 @@ export default function App() {
     },
   });
 
-  const startListening = () => { setReview(null); setShowUndo(false); speech.clearError(); speech.start(); };
+  // Stop Hunter first so the speaker isn't picked up as the user's answer
+  const startListening = () => { stopSpeaking(); setReview(null); setShowUndo(false); speech.clearError(); speech.start(); };
   const onMic = () => (speech.listening ? speech.stop() : startListening());
   const typeInstead = () => {
     speech.cancel();
@@ -121,8 +128,20 @@ export default function App() {
     : out.quickReplies;
   const lastReply = [...messages].reverse().find((m) => m.from === 'hunter')?.text;
 
+  const hunterState: HunterState =
+    speech.listening ? 'listening'
+    : hunter === 'thinking' ? 'thinking'
+    : tts.speaking ? 'speaking'
+    : hunter;
+
+  const toggleMute = () => {
+    if (!muted) stopSpeaking();
+    setMuted(!muted);
+  };
+
   return (
-    <div className="app">
+    // The first tap anywhere unlocks speech (iPhone Safari stays silent until then)
+    <div className="app" onClickCapture={tts.unlock}>
       <header className="topbar">
         <div>
           <h1>The Ridgeback Cup</h1>
@@ -131,7 +150,7 @@ export default function App() {
       </header>
 
       <aside className="avatar-panel">
-        <Hunter state={speech.listening ? 'listening' : hunter} />
+        <Hunter state={hunterState} />
       </aside>
 
       <main className="conversation">
@@ -170,9 +189,10 @@ export default function App() {
         onSend={(t) => { speech.cancel(); speech.clearError(); sendText(t); }}
         onBack={() => { clearVoice(); dispatch({ kind: 'back' }); }}
         onRestart={restart}
-        onRepeat={() => lastReply && speak(lastReply)}
+        onRepeat={() => lastReply && ttsSpeak(lastReply)} // an explicit tap plays even when muted
         muted={muted}
-        onToggleMute={() => setMuted((m) => !m)}
+        onToggleMute={toggleMute}
+        speechOutSupported={tts.supported}
         askingName={out.asking === 'name'}
         disabled={busy}
         micSupported={speech.supported}

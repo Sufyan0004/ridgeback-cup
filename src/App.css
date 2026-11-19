@@ -184,3 +184,7 @@
 .voice-undo button { border: none; background: none; padding: 4px; color: var(--brown-dark); text-decoration: underline; text-underline-offset: 3px; }
 
 .composer__note { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
+
+/* ---------- Voice output (step 7) ---------- */
+.controls button:disabled { opacity: 0.4; text-decoration: none; }
+.controls button[aria-pressed="true"] { font-weight: 700; }

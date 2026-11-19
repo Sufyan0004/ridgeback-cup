@@ -28,7 +28,7 @@ const QUESTIONS: Record<Slot, string> = {
   temp: 'Hot or iced?',
   milk: 'Which milk would you like?',
   extras: 'Any extras? You can pick more than one, or say no extras.',
-  quantity: 'How many?',
+  quantity: 'How many cups?',
   pickup: 'When would you like to pick it up?',
   name: 'What name should I put on the cup? Please type it.',
 };
